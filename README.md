@@ -1,5 +1,4 @@
-# OTE-data-screaper-and-API
-[OTE](https://www.ote-cr.cz/en) data scraper and API to access the scraped data.
+# OTE data scraper and API
 
 [OTE](https://www.ote-cr.cz/en) is an authority which publishes the electricity and gas market prices in Czechia.
 
