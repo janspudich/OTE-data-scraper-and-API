@@ -2,6 +2,8 @@
 *~
 # Private notes
 notes.*
+# Private configuration data
+.env
 # Logs
 logs
 *.log

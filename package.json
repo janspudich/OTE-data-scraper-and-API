@@ -1,0 +1,30 @@
+{
+  "name": "ote-data-scraper-and-api",
+  "version": "0.0.0",
+  "description": "OTE data scraper and API to access the data scraped.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janspudich/OTE-data-scraper-and-API.git"
+  },
+  "keywords": [
+    "OTE"
+  ],
+  "author": "Jan Spudich",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/janspudich/OTE-data-scraper-and-API/issues"
+  },
+  "homepage": "https://github.com/janspudich/OTE-data-scraper-and-API#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "http": "^0.0.1-security",
+    "mongoose": "^8.9.0",
+    "util": "^0.12.5"
+  }
+}
