@@ -1,3 +1,7 @@
+# Emacs backup files
+*~
+# Private notes
+notes.*
 # Logs
 logs
 *.log
