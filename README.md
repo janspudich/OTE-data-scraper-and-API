@@ -1,3 +1,6 @@
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjanspudich%2FOTE-data-scraper-and-API%2Frefs%2Fheads%2Fmain%2Fpackage.json%3Ftoken%3DGHSAT0AAAAAAC3E26IUXXJX366KOOXMOOF2Z3ASQGQ&query=%24.version&label=version)
+
+
 # OTE data scraper and API
 
 ## Introduction
@@ -86,7 +89,7 @@ In the data model above, the `marketData` is a two dimensional array of numbers,
 - On the day when the CEST time zone transitions to the CET time zone (25 entries).
 
 The second dimension represents different types of numerical data for the given one-hour slot:
-- The first value is 0-based number of the one-hour slot.
+- The first value is a zero-based number of the one-hour slot.
 - The second value is the electricity market price in `EUR/MWh` for the one-hour slot.
 - The third value is the amount of electricity traded in `MWh` for the one-hour slot.
 - The meaning of the fourth, five-th and sixth value is not perfectly clear to the author of this application.
