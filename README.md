@@ -1,7 +1,7 @@
 # OTE data scraper and API
 
 ## Introduction
-[OTE](https://www.ote-cr.cz/en) is an authority who publishes the electricity and gas market prices in Czechia. The purpose of this application is two-fold:
+[OTE](https://www.ote-cr.cz/en) is the authority who publishes the electricity and gas market prices in Czechia. The purpose of this application is two-fold:
 1. Scrape the market data from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
 2. Provide a REST API interface which enables to retrieve the data stored in the database, see the previous objective.
 
@@ -11,7 +11,7 @@ Each of these purposes is served by a dedicated module of this application descr
 ## The data scraper module
 The following paragraphs document the module dependencies and how the module is configured.
 
-### Dependencies
+### Dependencies {#dep-data-scraper}
 
 | NPM package | Version | Comment                                       |
 |-------------|---------|-----------------------------------------------|
@@ -23,14 +23,30 @@ The following paragraphs document the module dependencies and how the module is 
 
 
 ### Configuration
-It is possible to configure functionality of the module through the following constants in the module source code:
-- `CONF_START_DATE` - The first date to scrape the data for.
-- `CONF_PERIOD_IN_DAYS` - The number of days to scrape data for.
+It is possible to configure the module functionality by setting the following constants in the module source code:
+- `CONF_START_DATE` - The first date to scrape the data for in the format `YYYY-MM-DD`.
+- `CONF_PERIOD_IN_DAYS` - The number of days to scrape the data for.
 
 There is not any verification of these configuration parameters; this is a possible enhancement of this module.
 
 
 ## The OTE API module
+The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#conf-ote-api-module).
+
+### Dependencies
+In addition to the dependencies listed in the [data scraper module dependencies](#dep-data-scraper), the OTE API module has the following dependencies:
+
+| NPM package | Version         | Comment |
+|-------------|-----------------|---------|
+| express     | ^4.21.2.        | To      |
+| http        | ^0.0.1-security |         |
+
+### Configuration {#conf-ote-api-module}
+The HTTP request at `GET /marketData` has the following two query parameters:
+- `startDate` - Mandatory, the first date of the period to return the market data for.
+- `endDate` - Optional, the last date of the period to return the market data for. If omitted, the default value is equal to a value of `startDate` and the response contains data for a single day.
+
+A format of both parameters is `YYYY-MM-DD`.
 
 ## The database data model
 As it was mentioned above, the data scraper module uses a database to store the scraped data and the OTE API module uses the same database to provide the data through a REST API.
@@ -64,15 +80,6 @@ The second dimension represents different types of numerical data for the given 
 - The meaning of the fourth, five-th and sixth value is not perfectly clear to the author of this application.
 
 ### A note about how dates are treated
-
-## Possible use of the application
-The OTE API makes the data stored in the DB available through an API, so it can be used for other purposes, e.g. to visualize the data in [Looker Studio](https://lookerstudio.google.com).
-
-## Disclaimer
-### A note about using the scraper
-A risk of generating a load which is higher then what the OTE infrastructure has been designed for. Use responsibly. 
-
-**TODO**: see if there is a similar note for a similar piece of code.
 
 ## Deployment
 1. Get MongoDB ready.
@@ -137,3 +144,21 @@ A risk of generating a load which is higher then what the OTE infrastructure has
    ```
 	   node ./src/oteDataApi.js
 	   ```
+
+## Possible use of the application
+The OTE API module makes the data stored in the DB available through an API, so it can be used for other purposes, e.g. to visualize the data in [Looker Studio](https://lookerstudio.google.com).
+
+## Possible enhancements
+- The data scraper module
+  1. Use [Memoizee](https://github.com/medikoo/memoizee) or a similar caching solution.
+  2. Verify the configuration parameters.
+  3. Expose the configuration parameters as command line options
+- The OTE API module
+  1. Develop the OAS file
+  2. Verify the query parameters `startDate` and `endDate`.
+
+## Disclaimer
+The author is by no means affiliated with [OTE](https://www.ote-cr.cz/en) and does not have any formal (or informal) relationship with the organization.
+
+### A note about using the scraper
+By using the data scraper module, you create a risk of generating a load which is higher then what the OTE infrastructure has been designed to handle. Use responsibly at your own risk.
