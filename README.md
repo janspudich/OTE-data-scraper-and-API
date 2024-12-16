@@ -5,11 +5,14 @@
 1. Scrape the market data from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
 2. Provide a REST API interface which enables to retrieve the data stored in the database, see the previous objective.
 
-Each of these purposes is served by a dedicated module of this application described below. Additionally, there is a section dedicated to the database data model. 
+Each of these purposes is served by a dedicated Node.js module of this application described below. Additionally, this document explains the [database data model](#database-data-model) and [deployment](#deployment) of the application. 
+
+Finally, this document outlines [possible use of this application](#possible-use-of-the-application) and [possible enhancements](#possible-enhancements). Last but not least, there is also a [disclaimer](#disclaimer).
 
 
 ## The data scraper module (DSM)
-The following paragraphs document the module dependencies and how the module is configured.
+
+The data scraper module scrapes the market data from the [OTE](https://www.ote-cr.cz/en) web site for a pre-configured period of time (see [Configuration (DSM)](#configuration-dsm)) and stores the data in a database.
 
 ### Dependencies (DSM)
 
@@ -31,15 +34,16 @@ There are not any verifications of these configuration parameters implemented; t
 
 
 ## The OTE API module (OAM)
-The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#configuration-oam).
+The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#configuration-oam). The response data are fetched from the database where they were previously stored by [the data scraper module (DSM)](#the-data-scraper-module-dsm).
 
 ### Dependencies (OAM)
 In addition to the dependencies listed in the [Dependencies (DSM)](#dependencies-dsm), the OTE API module has the following dependencies:
 
-| NPM package | Version         | Comment |
-|-------------|-----------------|---------|
-| express     | ^4.21.2.        | To      |
-| http        | ^0.0.1-security |         |
+| NPM package | Version         | Comment                                   |
+|-------------|-----------------|-------------------------------------------|
+| express     | ^4.21.2.        | To buid the OAM API.                      |
+| http        | ^0.0.1-security | To provide the OAM API as an HTTP server. |
+
 
 ### Configuration (OAM)
 The HTTP request at `GET /marketData` has the following two query parameters:
