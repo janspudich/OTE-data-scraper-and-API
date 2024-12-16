@@ -114,7 +114,7 @@ A risk of generating a load which is higher then what the OTE infrastructure has
 
 3. Configure the environment.
 
-	In the project root directory, create a file `.env` and set the following variables in the file:
+	In the project root directory, create the `.env` file and set the following variables in the file:
 
     | Variable name       | Variable value | Comment                                                     |
     |---------------------|----------------|-------------------------------------------------------------|
@@ -126,7 +126,7 @@ A risk of generating a load which is higher then what the OTE infrastructure has
     | `OTE_MONGO_PORT`    |                | A port of the MongoDB server.                               |
     | `OTE_MONGO_DB_NAME` |                | A name of the MongoDB database.                             |
 
-4. Optional: configure the data scraper module, see [](#Configuration).
+4. Optional: configure the data scraper module, see [Configuration](#configuration).
 
 5. Run the data scraper module
    ```
