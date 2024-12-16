@@ -76,33 +76,42 @@ A risk of generating a load which is higher then what the OTE infrastructure has
 
 ## Deployment
 1. Get MongoDB ready
-   2. Create DB
-```
-mongosh mongodb://<username>:<password>@<MongoDB IP address>:<port>
-```
+
+   1. Create DB
+   ```
+   mongosh mongodb://<username>:<password>@<MongoDB IP address>:<port>
+   ```
    
-   3. Switch to the DB created above
-```
-use OTE
-```
+   2. Switch to the DB created above
+   ```
+   use OTE
+   ```
+
    3. Create a user with write access to the DB created in the previous step
-```javascript
-db.createUser({
-	user: "OTENodeUser",
-	pwd: passwordPrompt(),
-	roles: [{role: "readWrite", db: "OTE"}]
-})
-```
+   ```javascript
+   db.createUser({
+	   user: "OTENodeUser",
+	   pwd: passwordPrompt(),
+	   roles: [{role: "readWrite", db: "OTE"}]
+   })
+   ```
+
 2. Clone the repo
-   3. Using CLI, change to the directory of your choice
-   4. Clone the repo
+
+   1. Using CLI, change to the directory of your choice
+   
+   2. Clone the repo
    ```
    git clone
    ```
-   5. Install the depencencies
+
+   4. Install the dependencies
    ```
    npm install
    ```
+
 3. Configure the environment
+
 4. Run the data scraper module
+
 5. Run the OTE API module
