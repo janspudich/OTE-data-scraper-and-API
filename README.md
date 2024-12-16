@@ -75,43 +75,64 @@ A risk of generating a load which is higher then what the OTE infrastructure has
 **TODO**: see if there is a similar note for a similar piece of code.
 
 ## Deployment
-1. Get MongoDB ready
+1. Get MongoDB ready.
 
-   1. Create DB
+   1. Connect to MongoDB using `mongosh`.
    ```
    mongosh mongodb://<username>:<password>@<MongoDB IP address>:<port>
    ```
    
-   2. Switch to the DB created above
+   2. Switch to the DB which you want to use for the application.
    ```
-   use OTE
+   use <DB name>
    ```
 
-   3. Create a user with write access to the DB created in the previous step
+   3. Create a user with write access to the DB (take a note of the password so you can set the application environment variable later in the set up process).
    ```javascript
    db.createUser({
-	   user: "OTENodeUser",
+	   user: "<DB user>",
 	   pwd: passwordPrompt(),
-	   roles: [{role: "readWrite", db: "OTE"}]
+	   roles: [{role: "readWrite", db: "<DB user>"}]
    })
    ```
 
-2. Clone the repo
+2. Install the application.
 
-   1. Using CLI, change to the directory of your choice
+   1. Using CLI, change to the directory of your choice.
    
-   2. Clone the repo
+   2. Clone the application repo.
    ```
-   git clone
+   git clone https://github.com/janspudich/OTE-data-scraper-and-API.git
    ```
+
+**TODO**: Test the command above immediately after publishing this repo.
 
    4. Install the dependencies
    ```
    npm install
    ```
 
-3. Configure the environment
+3. Configure the environment.
+In the project root directory, create a file `.env` and set the following variables in the file:
 
-4. Run the data scraper module
+| Variable name       | Variable value | Comment                                                     |
+|---------------------|----------------|-------------------------------------------------------------|
+| `OTE_BE_TUPLE_PORT` |                | A port on which the OTE API module listens for connections. |
+| `OTE_MONGO_SCHEMA`  | "mongodb"      | The MongoDB schema.                                         |
+| `OTE_MONGO_USER`    |                | The MongoDB user.                                           |
+| `OTE_MONGO_PASSW`   |                | The MongoDB user's password.                                |
+| `OTE_MONGO_IP`      |                | An IP address of the MongoDB server.                        |
+| `OTE_MONGO_PORT`    |                | A port of the MongoDB server.                               |
+| `OTE_MONGO_DB_NAME` |                | A name of the MongoDB database.                             |
 
-5. Run the OTE API module
+4. Optional: configure the data scraper module, see [](###Configuration).
+
+5. Run the data scraper module
+   ```
+   node ./src/scraper.js 
+   ```
+
+6. Run the OTE API module
+   ```
+   node ./src/oteDataApi.js
+   ```
