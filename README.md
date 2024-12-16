@@ -78,9 +78,9 @@ A risk of generating a load which is higher then what the OTE infrastructure has
 1. Get MongoDB ready.
 
    1. Connect to MongoDB using `mongosh`.
-   ```
-   mongosh mongodb://<username>:<password>@<MongoDB IP address>:<port>
-   ```
+	  ```
+		mongosh mongodb://<username>:<password>@<MongoDB IP address>:<port>
+		```
    
    2. Switch to the DB which you want to use for the application.
 	  ```
@@ -92,7 +92,7 @@ A risk of generating a load which is higher then what the OTE infrastructure has
 		db.createUser({
 			user: "<DB user>",
 			pwd: passwordPrompt(),
-			roles: [{role: "readWrite", db: "<DB user>"}]
+			roles: [{role: "readWrite", db: "<DB name>"}]
 		})
 		```
 
@@ -105,7 +105,7 @@ A risk of generating a load which is higher then what the OTE infrastructure has
 		git clone https://github.com/janspudich/OTE-data-scraper-and-API.git
 		```
 
-	**TODO**: Test the command above immediately after publishing this repo.
+		**TODO**: Test the command above immediately after publishing this repo.
 
    3. Install the dependencies
 	  ```
