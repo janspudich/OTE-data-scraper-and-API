@@ -5,14 +5,17 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "release:major": "npm verions major",
+        "release:minor": "npm version minor",
+        "release:patch": "npm version patch"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/janspudich/OTE-data-scraper-and-API.git"
     },
     "keywords": [
-        "OTE"
+        "OTE", "scraper", "REST API"
     ],
     "author": "Jan Spudich",
     "license": "MIT",
