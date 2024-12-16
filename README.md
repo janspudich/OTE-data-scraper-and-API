@@ -126,7 +126,7 @@ A risk of generating a load which is higher then what the OTE infrastructure has
     | `OTE_MONGO_PORT`    |                | A port of the MongoDB server.                               |
     | `OTE_MONGO_DB_NAME` |                | A name of the MongoDB database.                             |
 
-4. Optional: configure the data scraper module, see [](###Configuration).
+4. Optional: configure the data scraper module, see [](#Configuration).
 
 5. Run the data scraper module
    ```
