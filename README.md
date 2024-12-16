@@ -1,4 +1,5 @@
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjanspudich%2FOTE-data-scraper-and-API%2Frefs%2Fheads%2Fmain%2Fpackage.json%3Ftoken%3DGHSAT0AAAAAAC3E26IUXXJX366KOOXMOOF2Z3ASQGQ&query=%24.version&label=version)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjanspudich%2FOTE-data-scraper-and-API%2Frefs%2Fheads%2Fmain%2Fpackage.json&query=%24.version&label=version)
+
 
 
 # OTE data scraper and API
@@ -176,6 +177,9 @@ The author is by no means affiliated with [OTE](https://www.ote-cr.cz/en) and do
 
 ### A note about using the scraper
 By using the data scraper module, you create a risk of generating a load which is higher then what the OTE infrastructure has been designed to handle. Use responsibly at your own risk.
+
+
+
 
 
 Sponsored by <a href="https://origimi.com"><img src="https://www.origimi.com/wp-content/themes/origimi/resources/images/Origimi_logo_web_739x128.png" width="120"></a>
