@@ -5,7 +5,7 @@
 
 The purpose of this application is two-fold:
 1. Scrape the market data from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
-2. Provide a REST API interface which enables to retrieve the data stored in the database, see the previous objective.
+2. Provide a REST API interface which enables to retrieve the data stored in the database.
 
 Each of these purposes is served by a dedicated Node.js module of this application described below. Additionally, this document explains the [database data model](#database-data-model) and [deployment](#deployment) of the application. 
 
@@ -153,21 +153,26 @@ The second dimension represents different types of numerical data for the given 
 
 
 ## Possible use of the application
-This application provides a REST API interface which enables machines to consume the electricity market prices as published by OTE [OTE](https://www.ote-cr.cz/en) in Czechia.
+This application provides a REST API interface which enables machines to consume the electricity market prices as published by [OTE](https://www.ote-cr.cz/en) in Czechia.
 
-Any application or system adding a value on top of the raw data can potentially benefit from the application available in this repo. Examples of these systems include (but are not limited to) business intelligence (BI) or data visualization solutions.
+Any application or system adding a value on top of the raw data can benefit from the application available in this repo. Examples of these systems include (but are not limited to) business intelligence (BI) or data visualization solutions.
 
 ## Possible enhancements
 - The data scraper module
   1. Use [Memoizee](https://github.com/medikoo/memoizee) or a similar caching solution.
-  2. Verify the configuration parameters.
-  3. Expose the configuration parameters as command line options
+  2. Verify the configuration parameters, incl. error handling.
+  3. Expose the configuration parameters as command line options.
+  4. A test suite.
 - The OTE API module
   1. Develop the OAS file
-  2. Verify the query parameters `startDate` and `endDate`.
+  2. Verify the query parameters `startDate` and `endDate`, incl. error handling.
+  3. A test suite.
 
 ## Disclaimer
 The author is by no means affiliated with [OTE](https://www.ote-cr.cz/en) and does not have any formal (or informal) relationship with the organization.
 
 ### A note about using the scraper
 By using the data scraper module, you create a risk of generating a load which is higher then what the OTE infrastructure has been designed to handle. Use responsibly at your own risk.
+
+
+Sponsored by <img src="https://www.origimi.com/wp-content/themes/origimi/resources/images/Origimi_logo_web_739x128.png" width="200">
