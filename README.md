@@ -2,10 +2,10 @@
 
 ## Introduction
 [OTE](https://www.ote-cr.cz/en) is an authority who publishes the electricity and gas market prices in Czechia. The purpose of this application is two-fold:
-1. Scrape the market date from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
+1. Scrape the market data from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
 2. Provide a REST API interface which enables to retrieve the data stored in the database, see the previous objective.
 
-Each of these purposes is served by a dedicated module of this application described below.
+Each of these purposes is served by a dedicated module of this application described below. Additionally, there is a section dedicated to the database data model. 
 
 
 ## The data scraper module
@@ -32,7 +32,7 @@ There is not any verification of these configuration parameters; this is a possi
 
 ## The OTE API module
 
-## The data model
+## The database data model
 As it was mentioned above, the data scraper module uses a database to store the scraped data and the OTE API module uses the same database to provide the data through a REST API.
 
 The database is MongoDB where the OTE market data for a single day is stores as a document of the `oteOneDay` model:
@@ -65,7 +65,44 @@ The second dimension represents different types of numerical data for the given 
 
 ### A note about how dates are treated
 
-## Possible use
+## Possible use of the application
 The OTE API makes the data stored in the DB available through an API, so it can be used for other purposes, e.g. to visualize the data in [Looker Studio](https://lookerstudio.google.com).
 
+## Disclaimer
+### A note about using the scraper
+A risk of generating a load which is higher then what the OTE infrastructure has been designed for. Use responsibly. 
 
+**TODO**: see if there is a similar note for a similar piece of code.
+
+## Deployment
+1. Get MongoDB ready
+   2. Create DB
+```
+mongosh mongodb://<username>:<password>@<MongoDB IP address>:<port>
+```
+   
+   3. Switch to the DB created above
+```
+use OTE
+```
+   3. Create a user with write access to the DB created in the previous step
+```javascript
+db.createUser({
+	user: "OTENodeUser",
+	pwd: passwordPrompt(),
+	roles: [{role: "readWrite", db: "OTE"}]
+})
+```
+2. Clone the repo
+   3. Using CLI, change to the directory of your choice
+   4. Clone the repo
+   ```
+   git clone
+   ```
+   5. Install the depencencies
+   ```
+   npm install
+   ```
+3. Configure the environment
+4. Run the data scraper module
+5. Run the OTE API module
