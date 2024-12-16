@@ -1,7 +1,7 @@
 # OTE data scraper and API
 
 ## Introduction
-[OTE](https://www.ote-cr.cz/en) is the authority who publishes the electricity and gas market prices in Czechia, e.g. the electricity market price for the date of 8-Nov-2015 in a human-readable format is available at <https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh?date=2015-11-08> (there is also an option to download the data as a file in the `.xls` format). For an unknown reason, OTE does not provide a public REST API interface serving this data - and thus this application.
+[OTE](https://www.ote-cr.cz/en) is the authority who publishes the electricity and gas market prices in Czechia, e.g. the electricity market price for the date of 8-Nov-2015 in a human-readable format is available at <https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh?date=2015-11-08> (there is also an option to download the data as a file in the `.xls` format). For an unknown reason, OTE does not provide a public REST API interface serving this data. And thus this application.
 
 The purpose of this application is two-fold:
 1. Scrape the market data from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
@@ -9,7 +9,9 @@ The purpose of this application is two-fold:
 
 Each of these purposes is served by a dedicated Node.js module of this application described below. Additionally, this document explains the [database data model](#database-data-model) and [deployment](#deployment) of the application. 
 
-Finally, this document outlines [possible use of this application](#possible-use-of-the-application) and [possible enhancements](#possible-enhancements). Last but not least, there is also a [disclaimer](#disclaimer).
+Further, this document outlines [possible use of this application](#possible-use-of-the-application) and [possible enhancements](#possible-enhancements). 
+
+Last but not least, there is also a [disclaimer](#disclaimer).
 
 
 ## The data scraper module (DSM)
@@ -18,13 +20,13 @@ The data scraper module scrapes the market data from the [OTE](https://www.ote-c
 
 ### Dependencies (DSM)
 
-| NPM package | Version | Comment                                       |
-|-------------|---------|-----------------------------------------------|
-| axios       | ^1.7.9  | To read the remote OTE web page.              |
-| cheerio     | ^1.0.0  | To parse and scrape the remote OTE web page.  |
-| dotenv      | ^16.4.7 | To read the environment variables.            |
-| mongoose    | ^8.9.0  | To read from and write to a MongoDB database. |
-| util        | ^0.12.5 |                                               |
+| NPM package | Version | Comment                                                 |
+|-------------|---------|---------------------------------------------------------|
+| axios       | ^1.7.9  | To read the remote OTE web page.                        |
+| cheerio     | ^1.0.0  | To parse and scrape the remote OTE web page.            |
+| dotenv      | ^16.4.7 | To read the environment variables.                      |
+| mongoose    | ^8.9.0  | To read data from and write data to a MongoDB database. |
+| util        | ^0.12.5 |                                                         |
 
 
 ### Configuration (DSM)
