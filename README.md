@@ -31,10 +31,10 @@ There are not any verifications of these configuration parameters implemented; t
 
 
 ## The OTE API module (OAM)
-The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#configuration-(oam)).
+The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#configuration-oam).
 
 ### Dependencies (OAM)
-In addition to the dependencies listed in the [data scraper module dependencies](#dependencies-(dsm)), the OTE API module has the following dependencies:
+In addition to the dependencies listed in the [Dependencies (DSM)](#dependencies-dsm), the OTE API module has the following dependencies:
 
 | NPM package | Version         | Comment |
 |-------------|-----------------|---------|
@@ -133,7 +133,7 @@ The second dimension represents different types of numerical data for the given 
     | `OTE_MONGO_PORT`    |                | A port of the MongoDB server.                               |
     | `OTE_MONGO_DB_NAME` |                | A name of the MongoDB database.                             |
 
-4. Optional: configure the data scraper module, see [Configuration (DSM)](#configuration-(dsm)).
+4. Optional: configure the data scraper module, see [Configuration (DSM)](#configuration-dsm).
 
 5. Run the data scraper module
    ```
