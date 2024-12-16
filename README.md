@@ -175,4 +175,4 @@ The author is by no means affiliated with [OTE](https://www.ote-cr.cz/en) and do
 By using the data scraper module, you create a risk of generating a load which is higher then what the OTE infrastructure has been designed to handle. Use responsibly at your own risk.
 
 
-Sponsored by <img src="https://www.origimi.com/wp-content/themes/origimi/resources/images/Origimi_logo_web_739x128.png" width="200">
+Sponsored by <a href="https://origimi.com"><img src="https://www.origimi.com/wp-content/themes/origimi/resources/images/Origimi_logo_web_739x128.png" width="100"></a>
