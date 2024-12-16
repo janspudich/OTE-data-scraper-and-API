@@ -34,7 +34,7 @@ There are not any verifications of these configuration parameters implemented; t
 
 
 ## The OTE API module (OAM)
-The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#configuration-oam). The response data are fetched from the database where they were previously stored by [the data scraper module (DSM)](#the-data-scraper-module-dsm).
+The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration (OAM)](#configuration-oam). The response data are fetched from the database where they were previously stored by [the data scraper module (DSM)](#the-data-scraper-module-dsm).
 
 ### Dependencies (OAM)
 In addition to the dependencies listed in the [Dependencies (DSM)](#dependencies-dsm), the OTE API module has the following dependencies:
@@ -55,7 +55,7 @@ A format of both parameters is `YYYY-MM-DD`.
 ## The database data model
 As it was mentioned above, the data scraper module uses a database to store the scraped data and the OTE API module uses the same database to provide the data through a REST API.
 
-The database is MongoDB where the OTE market data for a single day is stores as a document of the `oteOneDay` model:
+The database is MongoDB where the OTE market data for a single day is stored as a document of the `oteOneDay` model:
 
 ```javascript
 const oteOneDaySchema = new mongoose.Schema({
@@ -139,15 +139,10 @@ The second dimension represents different types of numerical data for the given 
 
 4. Optional: configure the data scraper module, see [Configuration (DSM)](#configuration-dsm).
 
-5. Run the data scraper module
-   ```
-	   node ./src/scraper.js 
-	   ```
+5. Run the data scraper module, ` node ./src/scraper.js`.
 
-6. Run the OTE API module
-   ```
-	   node ./src/oteDataApi.js
-	   ```
+6. Run the OTE API module `node ./src/oteDataApi.js`.
+
 
 ## Possible use of the application
 The OTE API module makes the data stored in the DB available through an API, so it can be used for other purposes, e.g. to visualize the data in [Looker Studio](https://lookerstudio.google.com).
