@@ -1,7 +1,9 @@
 # OTE data scraper and API
 
 ## Introduction
-[OTE](https://www.ote-cr.cz/en) is the authority who publishes the electricity and gas market prices in Czechia. The purpose of this application is two-fold:
+[OTE](https://www.ote-cr.cz/en) is the authority who publishes the electricity and gas market prices in Czechia, e.g. the electricity market price for the date of 8-Nov-2015 in a human-readable format is available at <https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh?date=2015-11-08> (there is also an option to download the data as a file in the `.xls` format). For an unknown reason, OTE does not provide a public REST API interface serving this data - and thus this application.
+
+The purpose of this application is two-fold:
 1. Scrape the market data from the [OTE](https://www.ote-cr.cz/en) web site and store the data in a database.
 2. Provide a REST API interface which enables to retrieve the data stored in the database, see the previous objective.
 
@@ -34,7 +36,11 @@ There are not any verifications of these configuration parameters implemented; t
 
 
 ## The OTE API module (OAM)
-The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration (OAM)](#configuration-oam). The response data are fetched from the database where they were previously stored by [the data scraper module (DSM)](#the-data-scraper-module-dsm).
+The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body.
+
+Parameters of the request are documented in the section [Configuration (OAM)](#configuration-oam).
+
+The response data are fetched from the database where they were previously stored by [the data scraper module (DSM)](#the-data-scraper-module-dsm).
 
 ### Dependencies (OAM)
 In addition to the dependencies listed in the [Dependencies (DSM)](#dependencies-dsm), the OTE API module has the following dependencies:
@@ -139,13 +145,15 @@ The second dimension represents different types of numerical data for the given 
 
 4. Optional: configure the data scraper module, see [Configuration (DSM)](#configuration-dsm).
 
-5. Run the data scraper module, ` node ./src/scraper.js`.
+5. Run the data scraper module: ` node ./src/scraper.js`.
 
-6. Run the OTE API module `node ./src/oteDataApi.js`.
+6. Run the OTE API module: `node ./src/oteDataApi.js`.
 
 
 ## Possible use of the application
-The OTE API module makes the data stored in the DB available through an API, so it can be used for other purposes, e.g. to visualize the data in [Looker Studio](https://lookerstudio.google.com).
+This application provides a REST API interface which enables machines to consume the electricity market prices as published by OTE [OTE](https://www.ote-cr.cz/en) in Czechia.
+
+Any application or system adding a value on top of the raw data can potentially benefit from the application available in this repo. Examples of these systems include (but are not limited to) business intelligence (BI) or data visualization solutions.
 
 ## Possible enhancements
 - The data scraper module
