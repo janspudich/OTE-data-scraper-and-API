@@ -8,10 +8,10 @@
 Each of these purposes is served by a dedicated module of this application described below. Additionally, there is a section dedicated to the database data model. 
 
 
-## The data scraper module
+## The data scraper module (DSM)
 The following paragraphs document the module dependencies and how the module is configured.
 
-### Dependencies {#dep-data-scraper}
+### Dependencies (DSM)
 
 | NPM package | Version | Comment                                       |
 |-------------|---------|-----------------------------------------------|
@@ -22,26 +22,26 @@ The following paragraphs document the module dependencies and how the module is 
 | util        | ^0.12.5 |                                               |
 
 
-### Configuration
+### Configuration (DSM)
 It is possible to configure the module functionality by setting the following constants in the module source code:
 - `CONF_START_DATE` - The first date to scrape the data for in the format `YYYY-MM-DD`.
 - `CONF_PERIOD_IN_DAYS` - The number of days to scrape the data for.
 
-There is not any verification of these configuration parameters; this is a possible enhancement of this module.
+There are not any verifications of these configuration parameters implemented; this is a possible enhancement of this module.
 
 
-## The OTE API module
-The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#conf-ote-api-module).
+## The OTE API module (OAM)
+The OTE API module is a very simple REST API server which receives an HTTP request at `GET /marketData` and replies with a response containing JSON encoded data in the body. Parameters of the request are documented in the section [Configuration](#configuration-(oam)).
 
-### Dependencies
-In addition to the dependencies listed in the [data scraper module dependencies](#dep-data-scraper), the OTE API module has the following dependencies:
+### Dependencies (OAM)
+In addition to the dependencies listed in the [data scraper module dependencies](#dependencies-(dsm)), the OTE API module has the following dependencies:
 
 | NPM package | Version         | Comment |
 |-------------|-----------------|---------|
 | express     | ^4.21.2.        | To      |
 | http        | ^0.0.1-security |         |
 
-### Configuration {#conf-ote-api-module}
+### Configuration (OAM)
 The HTTP request at `GET /marketData` has the following two query parameters:
 - `startDate` - Mandatory, the first date of the period to return the market data for.
 - `endDate` - Optional, the last date of the period to return the market data for. If omitted, the default value is equal to a value of `startDate` and the response contains data for a single day.
@@ -133,7 +133,7 @@ The second dimension represents different types of numerical data for the given 
     | `OTE_MONGO_PORT`    |                | A port of the MongoDB server.                               |
     | `OTE_MONGO_DB_NAME` |                | A name of the MongoDB database.                             |
 
-4. Optional: configure the data scraper module, see [Configuration](#configuration).
+4. Optional: configure the data scraper module, see [Configuration (DSM)](#configuration-(dsm)).
 
 5. Run the data scraper module
    ```
