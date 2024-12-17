@@ -128,8 +128,6 @@ The second dimension represents different types of numerical data for the given 
 		git clone https://github.com/janspudich/OTE-data-scraper-and-API.git
 		```
 
-		**TODO**: Test the command above immediately after publishing this repo.
-
    3. Install the dependencies
 	  ```
 		npm install
