@@ -11,7 +11,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 import oteOneDayDataModel from './datamodel/oneDayData.js';
-import { dateToDateStr, mongoUrl } from './util.js';
+import { dateToDateStr, mongoUrl, dateDiff } from './util.js';
 
 function setApiServer() {
     const app = express();
@@ -31,7 +31,7 @@ function setApiServer() {
     app.use(express.json());
 
     app.get('/', (req, res) => {
-        res.status(200).json({ msg: 'OTE server' });
+        res.status(200).json({ msg: 'OTE server 123' });
     });
 
     app.get('/marketData', (req, res) => {
@@ -95,6 +95,50 @@ function setApiServer() {
         }
         
         readMarketData();
+    });
+
+    app.get('/coverage', (req, res) => {
+        async function getTheFirstLastDate(order = 1) {
+            try {
+                const recordFound = await oteOneDayDataModel.
+                      findOne().
+                      sort({date: order}).
+                      limit(1).
+                      exec();
+                return recordFound.date;
+            }
+            catch (err) {
+            }
+            return null;
+        };
+
+        async function coverage() {
+            const theFirstDate = await getTheFirstLastDate();
+            const theLastDate = await getTheFirstLastDate(-1);
+            // https://stackoverflow.com/a/3224854
+            const diffTime = Math.abs(theFirstDate - theLastDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const duration = dateDiff(theFirstDate, theLastDate) + 1;
+            const coverage = await oteOneDayDataModel.countDocuments();
+            res.status(200).json({
+                startDate: dateToDateStr(theFirstDate),
+                endDate: dateToDateStr(theLastDate),
+                duration,
+                coverage,
+                gap: duration - coverage,
+            });
+        }
+        coverage();
+    });
+
+    app.get('/dateDiff', (req, res) => {
+        const startDate = new Date(req.query.startDate);
+        const endDate = new Date(req.query.endDate);
+        res.status(200).json({
+            startDate: dateToDateStr(startDate),
+            endDate: dateToDateStr(endDate),
+            duration: dateDiff(startDate, endDate),
+        });
     });
 
     app.use((err, req, res, next) => {

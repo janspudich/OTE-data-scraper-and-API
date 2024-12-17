@@ -104,8 +104,8 @@ function dateToScrapeUrl(date){
 */
 // const CONF_START_DATE = '2024-10-26';
 // const CONF_START_DATE = '2024-03-30';
-const CONF_START_DATE = '2022-01-01';
-const CONF_PERIOD_IN_DAYS = 365;
+const CONF_START_DATE = '2020-12-31';
+const CONF_PERIOD_IN_DAYS = 1;
 // If we do not set the time, the default value 00:00:00 is assumed
 // This time is interpreted as local time according to the locale settings
 // and translated to UTC when storing the data in the DB.
