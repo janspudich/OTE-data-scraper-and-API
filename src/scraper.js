@@ -3,13 +3,12 @@
 
 import mongoose from 'mongoose';
 import 'dotenv/config';
-import util from 'util';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 import oteOneHourDataModel from './datamodel/oneHourData.js';
-import oteOneDayDataModel from './datamodel/oneDayData.js';
-import { dateToDateStr, mongoUrl, oteUrlBase } from './util.js';
+import { oteOneDay as oteOneDayDataModel } from './datamodel/oneDayData.js';
+import { dateToDateStr, mongoUrl, oteUrlBase, connectToDb } from './util.js';
 
 
 
@@ -50,19 +49,6 @@ async function getMarketData(url) {
     return rows;
 }
 
-async function connectToDb() {
-    console.log(`Connecting to DB at ${process.env.OTE_MONGO_IP}`);
-    try {
-        await mongoose.connect(mongoUrl);
-        console.log(`Successfully connected to DB.`);
-    }
-    catch(err) {
-        console.log(`Error while connecting to DB.`);
-        console.log(
-            util.inspect(err, false, null, true), // The fourth param is to enable colors
-        );
-    };
-}
 
 
 async function storeOneDayData(date, oneDayData) {
@@ -104,7 +90,7 @@ function dateToScrapeUrl(date){
 */
 // const CONF_START_DATE = '2024-10-26';
 // const CONF_START_DATE = '2024-03-30';
-const CONF_START_DATE = '2020-12-31';
+const CONF_START_DATE = '2024-12-17';
 const CONF_PERIOD_IN_DAYS = 1;
 // If we do not set the time, the default value 00:00:00 is assumed
 // This time is interpreted as local time according to the locale settings
@@ -116,6 +102,7 @@ const CONF_PERIOD_IN_DAYS = 1;
 const CONF_DB_DATE_TIME = 'T13:00:00';
 
 await connectToDb();
+
 let scrapeDate = new Date(`${CONF_START_DATE}${CONF_DB_DATE_TIME}`);
 for (let i=0; i<CONF_PERIOD_IN_DAYS; i++){
     console.log('Scrape URL: ', dateToScrapeUrl(scrapeDate));

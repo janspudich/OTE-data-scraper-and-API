@@ -17,4 +17,13 @@ const oteOneDaySchema = new mongoose.Schema({
     methods: {
     },
 });
-export default mongoose.model('oteOneDay', oteOneDaySchema);
+export const oteOneDay = mongoose.model('oteOneDay', oteOneDaySchema);
+
+const oteApiKeySchema = new mongoose.Schema({
+    hashedKey: { 
+        type: String, 
+        match: /^[a-fA-F0-9]+$/, // Validate as hexadecimal string
+        required: true 
+    }
+});
+export const oteApiKey = mongoose.model('oteApiKey', oteApiKeySchema);

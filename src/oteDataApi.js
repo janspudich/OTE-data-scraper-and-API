@@ -9,9 +9,48 @@ import util from 'util';
 import express from 'express';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import crypto from 'crypto';
 
-import oteOneDayDataModel from './datamodel/oneDayData.js';
+import { oteOneDay as oteOneDayDataModel, oteApiKey } from './datamodel/oneDayData.js';
 import { dateToDateStr, mongoUrl, dateDiff } from './util.js';
+
+const errorObj = (msg) => ({
+    message: msg,
+});
+
+const authMW = (req, res, next) => {
+    const findKeyInDb = async (key) => {
+        try {
+            const keyFound = await oteApiKey.findOne({ hashedKey: key }).exec();
+            console.log(`apiKeyFound: ${keyFound}`);
+            if (keyFound === null) {
+                const errMsg = 'The API key used in the request is not authorized.';
+                return res.status(401).send(errorObj(errMsg));
+            }
+            else {
+                next();
+            }
+        }
+        catch (err) {
+            next(err);
+        }
+    };
+
+    const authHeader = req.headers.authorization || '';
+    const match = authHeader.match(/Bearer (.+)/);
+
+    if (!match) {
+        const errMsg = 'Authorization header missing';
+        return res.status(401).send(errorObj(errMsg));
+    }
+    else {
+        findKeyInDb(crypto.createHash('sha256', process.env.HASH_KEY)
+                    .update(match[1])
+                    .digest('hex'));
+    }
+};
+
+
 
 function setApiServer() {
     const app = express();
@@ -34,6 +73,8 @@ function setApiServer() {
         res.status(200).json({ msg: 'OTE server 123' });
     });
 
+    app.use(authMW);
+    
     app.get('/marketData', (req, res) => {
         
         async function readMarketData() {

@@ -1,3 +1,5 @@
+import util from 'util';
+import mongoose from 'mongoose';
 
 export const dateToDateStr = function(date){
     const month = date.getMonth() + 1;
@@ -18,3 +20,17 @@ export const dateDiff = function(dateStart, dateEnd){
 export const mongoUrl = `${process.env.OTE_MONGO_SCHEMA}://${process.env.OTE_MONGO_USER}:${process.env.OTE_MONGO_PASSW}@${process.env.OTE_MONGO_IP}:${process.env.OTE_MONGO_PORT}/${process.env.OTE_MONGO_DB_NAME}`;
 
 export const oteUrlBase = 'https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh?date=';
+
+export async function connectToDb() {
+    console.log(`Connecting to DB at ${process.env.OTE_MONGO_IP}`);
+    try {
+        await mongoose.connect(mongoUrl);
+        console.log(`Successfully connected to DB.`);
+    }
+    catch(err) {
+        console.log(`Error while connecting to DB.`);
+        console.log(
+            util.inspect(err, false, null, true), // The fourth param is to enable colors
+        );
+    };
+}
