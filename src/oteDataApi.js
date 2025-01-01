@@ -1,220 +1,274 @@
-// myStuff-BE main file
-// created by jan.spudich@origimi.com on 14-Sep-2022
+/**
+ * @file Defines the OTE API Module (OAM).
+ * @module OAM
+ * @author Jan Spudich <jan.spudich@origimi.com>
+ */
 
-import mongoose from 'mongoose';
 import 'dotenv/config';
 import cors from 'cors';
 import http from 'http';
 import util from 'util';
 import express from 'express';
-import axios from 'axios';
-import * as cheerio from 'cheerio';
 import crypto from 'crypto';
+import {
+  oteOneDay as oteOneDayDataModel,
+  oteApiKey,
+} from './datamodel/oneDayData.js';
+import {
+  dateToDateStr,
+  connectToDb,
+  dateDiff,
+} from './util.js';
 
-import { oteOneDay as oteOneDayDataModel, oteApiKey } from './datamodel/oneDayData.js';
-import { dateToDateStr, mongoUrl, dateDiff } from './util.js';
 
-const errorObj = (msg) => ({
-    message: msg,
-});
-
-const authMW = (req, res, next) => {
-    const findKeyInDb = async (key) => {
-        try {
-            const keyFound = await oteApiKey.findOne({ hashedKey: key }).exec();
-            console.log(`apiKeyFound: ${keyFound}`);
-            if (keyFound === null) {
-                const errMsg = 'The API key used in the request is not authorized.';
-                return res.status(401).send(errorObj(errMsg));
-            }
-            else {
-                next();
-            }
-        }
-        catch (err) {
-            next(err);
-        }
-    };
-
-    const authHeader = req.headers.authorization || '';
-    const match = authHeader.match(/Bearer (.+)/);
-
-    if (!match) {
-        const errMsg = 'Authorization header missing';
-        return res.status(401).send(errorObj(errMsg));
-    }
-    else {
-        findKeyInDb(crypto.createHash('sha256', process.env.HASH_KEY)
-                    .update(match[1])
-                    .digest('hex'));
-    }
+const respMessage = {
+  authHeaderMissing: 'Authorization header missing',
+  authHeaderDoesNotMatch: 'The API key used in the request is not authorized.',
+  serverId: 'OTE API Module (OAM), v0.0.1',
+  notFound: 'Not found',
+  serverError: 'Server unknown error',
 };
 
+/**
+ * Attempts to retrieve an authorization header from the request object.
+ * If the authorization header is not found, it sends an HTTP response,
+ * the code 401. Otherwise it retrieves an authorization token from the header,
+ * hashes the token using the app secret and searches the hashed image of the
+ * received token in the DB. If not found, it sends an HTTP response, the code
+ * 401. Otherwise the call is considered to be authorized and the middleware
+ * passes the execution on to the next Express middleware, one of the API
+ * methods.
+ * @function emwAuth
+ * @param {} req The Express Request object
+ * @param {} res The Express Response object
+ * @param {} next The Express Next function
+ */
+const emwAuth = (req, res, next) => {
+  const findKeyInDb = async (key) => {
+    try {
+      const keyFound = await oteApiKey.findOne({hashedKey: key}).exec();
+      console.log(`apiKeyFound: ${keyFound}`);
+      if (keyFound === null) {
+        // const errMsg = 'The API key used in the request is not authorized.';
+        // return res.status(401).send(errorObj(errMsg));
+        // res.status(401).send(errorObj(errMsg));
+        res.status(401).json({msg: respMessage.authHeaderDoesNotMatch});
+      }
+      else {
+        next();
+      }
+    }
+    catch (err) {
+      next(err);
+    }
+  };
 
+  const authHeader = req.headers.authorization || '';
+  const match = authHeader.match(/Bearer (.+)/);
+  if (!match) {
+    // const errMsg = 'Authorization header missing';
+    res.status(401).json({msg: respMessage.authHeaderMissing});
+  }
+  else {
+    findKeyInDb(crypto
+        .createHash('sha256', process.env.HASH_KEY)
+        .update(match[1])
+        .digest('hex'));
+  }
+};
 
-function setApiServer() {
-    const app = express();
+/**
+ * The Express middleware function which implements the `GET /dateDiff`
+ * API method.
+ * @function emwDateDiff
+ * @param {} req The Express Request object
+ * @param {} res The Express Response object
+ */
+const emwDateDiff = (req, res) => {
+  const startDate = new Date(req.query.startDate);
+  const endDate = new Date(req.query.endDate);
+  res.status(200).json({
+    startDate: dateToDateStr(startDate),
+    endDate: dateToDateStr(endDate),
+    duration: dateDiff(startDate, endDate),
+  });
+};
 
-    const port = process.env.OTE_BE_TUPLE_PORT;
+/**
+ * The Express middleware function which implements the `GET /coverage`
+ * API method.
+ * @function emwCoverage
+ * @param {} _req The Express Request object
+ * @param {} res The Express Response object
+ */
+const emwCoverage = (_req, res) => {
+  // async function getTheFirstLastDate(order = 1) {
+  const getTheFirstLastDate = async (order = 1) => {
+    try {
+      const recordFound = await oteOneDayDataModel.
+          findOne().
+          sort({date: order}).
+          limit(1).
+          exec();
+      return recordFound.date;
+    }
+    catch (err) {
+      console.log(err);
+    }
+    return null;
+  };
 
-    // allow scripts with an origin other than the back-end server and running
-    // in a browser to consume data from this back-end server
-    app.use(cors({
-        // origin: 'http://192.168.2.222:3000',
-        origin: '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    }));
-
-    // middlware to parse a JSON request body and store it in req.body
-    // if the request Content-Type is "application/json"
-    app.use(express.json());
-
-    app.get('/', (req, res) => {
-        res.status(200).json({ msg: 'OTE server 123' });
+  // async function coverage() {
+  const coverage = async () => {
+    const theFirstDate = await getTheFirstLastDate();
+    const theLastDate = await getTheFirstLastDate(-1);
+    // https://stackoverflow.com/a/3224854
+    const duration = dateDiff(theFirstDate, theLastDate) + 1;
+    const coverage = await oteOneDayDataModel.countDocuments();
+    res.status(200).json({
+      startDate: dateToDateStr(theFirstDate),
+      endDate: dateToDateStr(theLastDate),
+      duration,
+      coverage,
+      gap: duration - coverage,
     });
+  };
 
-    app.use(authMW);
-    
-    app.get('/marketData', (req, res) => {
-        
-        async function readMarketData() {
-            let queryObj;
-            const startDate = new Date(req.query.startDate);
-            console.log('startDate query param: ', req.query.startDate);
-            if(req.query.endDate){
-                // date range
-                const endDate = new Date(`${req.query.endDate}T21:59:59`);
-                queryObj = {
-                    $gte: startDate,
-                    $lte: endDate
-                };
-            }
-            else {
-                // single date
-                const endDate = new Date(`${req.query.startDate}T21:59:59`);
-                queryObj = {
-                    $gte: startDate,
-                    $lte: endDate
-                };
-            }
-            console.log('QueryObj: ', queryObj);
-            const marketData = await oteOneDayDataModel.
-                  find(
-                      {
-                          date: queryObj,
-                      },
-                  ).
-                  //                  select('marketData').
-                  exec();
+  coverage();
+};
 
-            let retVal = [];
+/**
+ * The Express middleware function which implements the `GET /marketData`
+ * API method.
+ * @function emwMarketData
+ * @param {} req The Express Request object
+ * @param {} res The Express Response object
+ */
+const emwMarketData = (req, res) => {
+  const readMarketData = async () => {
+    // async function readMarketData() {
+    let queryObj;
+    const startDate = new Date(req.query.startDate);
+    console.log('startDate query param: ', req.query.startDate);
+    if (req.query.endDate) {
+      // date range
+      const endDate = new Date(`${req.query.endDate}T21:59:59`);
+      queryObj = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+    else {
+      // single date
+      const endDate = new Date(`${req.query.startDate}T21:59:59`);
+      queryObj = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+    console.log('QueryObj: ', queryObj);
+    const marketData = await oteOneDayDataModel
+        .find(
+          {
+            date: queryObj,
+          },
+        )
+    // select('marketData').
+        .exec();
 
-            if(marketData.length > 1){
-                // date range
-                marketData.forEach((oneDayDataIn) => {
-                    let oneDayDataOut = [];
-                    oneDayDataIn.marketData.forEach((hour) => {
-                        oneDayDataOut.push(hour);
-                    });
-                    retVal.push({
-                        date: dateToDateStr(oneDayDataIn.date),
-                        marketData: oneDayDataOut,
-                    });
-                });
-                res.status(200).json(retVal);
-            }
-            else {
-                // single date
-                marketData[0].marketData.forEach((hour) => {
-                    retVal.push(hour);
-                });
-                res.status(200).json({
-                    date: dateToDateStr(startDate),
-                    marketData: retVal,
-                });
-            }
-        }
-        
-        readMarketData();
-    });
+    const retVal = [];
 
-    app.get('/coverage', (req, res) => {
-        async function getTheFirstLastDate(order = 1) {
-            try {
-                const recordFound = await oteOneDayDataModel.
-                      findOne().
-                      sort({date: order}).
-                      limit(1).
-                      exec();
-                return recordFound.date;
-            }
-            catch (err) {
-            }
-            return null;
-        };
-
-        async function coverage() {
-            const theFirstDate = await getTheFirstLastDate();
-            const theLastDate = await getTheFirstLastDate(-1);
-            // https://stackoverflow.com/a/3224854
-            const diffTime = Math.abs(theFirstDate - theLastDate);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            const duration = dateDiff(theFirstDate, theLastDate) + 1;
-            const coverage = await oteOneDayDataModel.countDocuments();
-            res.status(200).json({
-                startDate: dateToDateStr(theFirstDate),
-                endDate: dateToDateStr(theLastDate),
-                duration,
-                coverage,
-                gap: duration - coverage,
-            });
-        }
-        coverage();
-    });
-
-    app.get('/dateDiff', (req, res) => {
-        const startDate = new Date(req.query.startDate);
-        const endDate = new Date(req.query.endDate);
-        res.status(200).json({
-            startDate: dateToDateStr(startDate),
-            endDate: dateToDateStr(endDate),
-            duration: dateDiff(startDate, endDate),
+    if (marketData.length > 1) {
+      // date range
+      marketData.forEach((oneDayDataIn) => {
+        const oneDayDataOut = [];
+        oneDayDataIn.marketData.forEach((hour) => {
+          oneDayDataOut.push(hour);
         });
-    });
+        retVal.push({
+          date: dateToDateStr(oneDayDataIn.date),
+          marketData: oneDayDataOut,
+        });
+      });
+      res.status(200).json(retVal);
+    }
+    else {
+      // single date
+      marketData[0].marketData.forEach((hour) => {
+        retVal.push(hour);
+      });
+      res.status(200).json({
+        date: dateToDateStr(startDate),
+        marketData: retVal,
+      });
+    }
+  };
 
-    app.use((err, req, res, next) => {
-        // myStuff error handling
-        // res.status(err.myStuff.httpRespCode).json(err.myStuff);
-        console.log('ERROR: ', err);
-    });
+  readMarketData();
+};
 
-    app.use((req, res) => {
-        res.status(404).json({ msg: 'Not found' });
-    });
+/**
+ * Initialize the Express framework by carrying out the following:
+ * 1. Set the CORS middleware to enable for the server API methods to be called
+ * from an environment which enforces the same-origin-policy, e.g. a browser.
+ * See https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+ * 2. Set the json middlware to parse a JSON request body and store it in
+ * req.body if the request Content-Type is "application/json"
+ * 3. Define the API method `GET /`.
+ * 4. Set the authorization middleware [OAM.emwAuth]{@link module:OAM~emwAuth}.
+ * From now on, all API methods are protected by this middleware.
+ * 5. Define the API method `GET /marketData`
+ * using [OAM.emwMaerketData]{@link module:OAM~emwMarketData}.
+ * 6. Define the API method `GET /coverage`
+ * using [OAM.emwCoverage]{@link module:OAM~emwCoverage}.
+ * 7. Define the API method `GET /dateDiff`
+ * using [OAM.emwDateDiff]{@link module:OAM~emwDateDiff}.
+ */
+function setApiServer() {
+  const app = express();
 
+  const port = process.env.OTE_BE_TUPLE_PORT;
 
-    const httpsServer = http.createServer(app).listen( port, () => {
-        console.log('The OTE server has started.');
-        console.log(`Listening on the port ${port}.`);
-    });
+  // allow scripts with an origin other than the back-end server and running
+  // in a browser to consume data from this back-end server
+  app.use(cors({
+    // origin: 'http://192.168.2.222:3000',
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  }));
 
+  app.use(express.json());
+
+  app.get('/', (_req, res) => {
+    res.status(200).json({msg: respMessage.serverId});
+  });
+
+  app.use(emwAuth);
+
+  app.get('/marketData', emwMarketData);
+
+  app.get('/coverage', emwCoverage);
+
+  app.get('/dateDiff', emwDateDiff);
+
+  app.use((_req, res) => {
+    res.status(404).json({msg: respMessage.notFound});
+  });
+
+  app.use((err, _req, res, _next) => {
+    // error handling
+    console.log(
+      util.inspect(err, false, null, true), // The fourth param enables colors
+    );
+    res.status(500).json({msg: respMessage.serverError, err});
+  });
+
+  http.createServer(app).listen(port, () => {
+    console.log('The OTE server has started.');
+    console.log(`Listening on the port ${port}.`);
+  });
 }
 
-console.log(`Connecting to DB at ${process.env.OTE_MONGO_IP}`);
+await connectToDb();
 
-mongoose.connect(mongoUrl)
-    .then((resp) => {
-        console.log(`Successfully connected to DB.`);
-        setApiServer();
-    })
-    .catch((err) => {
-        console.log(`Error while connecting to DB.`);
-        console.log(
-            util.inspect(err, false, null, true), // The fourth param is to enable colors
-        );
-    });
-
-
-
-
-
+setApiServer();

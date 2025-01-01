@@ -1,9 +1,15 @@
+# JSDoc documentation exported into HTML
+doc/
+
 # Emacs backup files
 *~
+
 # Private notes
 notes.*
+
 # Private configuration data
 .env
+
 # Logs
 logs
 *.log
