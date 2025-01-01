@@ -1,6 +1,6 @@
 {
     "name": "ote-data-scraper-and-api",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "OTE data scraper and API to access the data scraped.",
     "main": "index.js",
     "type": "module",
