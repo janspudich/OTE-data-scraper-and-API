@@ -47,14 +47,14 @@ const emwAuth = (req, res, next) => {
   const findKeyInDb = async (key) => {
     try {
       const keyFound = await oteApiKey.findOne({hashedKey: key}).exec();
-      console.log(`apiKeyFound: ${keyFound}`);
+
       if (keyFound === null) {
-        // const errMsg = 'The API key used in the request is not authorized.';
-        // return res.status(401).send(errorObj(errMsg));
-        // res.status(401).send(errorObj(errMsg));
+        console.log(`Hashed API key not found in DB - call not authorized.`);
         res.status(401).json({msg: respMessage.authHeaderDoesNotMatch});
       }
       else {
+        // eslint-disable-next-line max-len
+        console.log(`Hashed API key found in DB: ${keyFound.hashedKey} - call authorized`);
         next();
       }
     }
@@ -70,10 +70,15 @@ const emwAuth = (req, res, next) => {
     res.status(401).json({msg: respMessage.authHeaderMissing});
   }
   else {
-    findKeyInDb(crypto
-        .createHash('sha256', process.env.HASH_KEY)
-        .update(match[1])
-        .digest('hex'));
+    const receivedApiKey = match[1];
+    const hexDigest = crypto
+        .createHmac('sha256', process.env.OTE_HASH_KEY)
+        .update(receivedApiKey)
+        .digest('hex');
+    // console.log(`Received API key: ${receivedApiKey}`);
+    // console.log(`Hash key: ${process.env.OTE_HASH_KEY}`);
+    // console.log(`Hex digest of the received API key: ${hexDigest}`);
+    findKeyInDb(hexDigest);
   }
 };
 
