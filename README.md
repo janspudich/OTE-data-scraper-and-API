@@ -146,6 +146,7 @@ The second dimension represents different types of numerical data for the given 
     | `OTE_MONGO_IP`      |                | An IP address of the MongoDB server.                        |
     | `OTE_MONGO_PORT`    |                | A port of the MongoDB server.                               |
     | `OTE_MONGO_DB_NAME` |                | A name of the MongoDB database.                             |
+    | `OTE_HASH_KEY`      |                | A secret for hashing the API keys.                          |
 
 4. Optional: configure the data scraper module, see [Configuration (DSM)](#configuration-dsm).
 

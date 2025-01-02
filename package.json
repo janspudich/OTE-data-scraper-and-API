@@ -1,49 +1,57 @@
 {
-    "name": "ote-data-scraper-and-api",
-    "version": "0.0.2",
-    "description": "OTE data scraper and API to access the data scraped.",
-    "main": "index.js",
-    "type": "module",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "release:major": "npm verions major",
-        "release:minor": "npm version minor",
-        "release:patch": "npm version patch"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/janspudich/OTE-data-scraper-and-API.git"
-    },
-    "keywords": [
-        "OTE",
-        "scraper",
-        "REST API"
-    ],
-    "author": "Jan Spudich",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/janspudich/OTE-data-scraper-and-API/issues"
-    },
-    "homepage": "https://github.com/janspudich/OTE-data-scraper-and-API#readme",
-    "dependencies": {
-        "axios": "^1.7.9",
-        "cheerio": "^1.0.0",
-        "cors": "^2.8.5",
-        "dotenv": "^16.4.7",
-        "express": "^4.21.2",
-        "http": "^0.0.1-security",
-        "mongoose": "^8.9.0",
-        "path": "^0.12.7",
-        "url": "^0.11.4",
-        "util": "^0.12.5",
-        "uuid": "^11.0.3"
-    },
-    "devDependencies": {
-        "@eslint/eslintrc": "^3.2.0",
-        "@eslint/js": "^9.17.0",
-        "eslint": "^9.17.0",
-        "eslint-config-google": "^0.14.0",
-        "eslint-plugin-jsdoc": "^50.6.1",
-        "globals": "^15.14.0"
-    }
+  "name": "ote-data-scraper-and-api",
+  "version": "0.0.2",
+  "description": "OTE data scraper and API to access the data scraped.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release:major": "npm verions major",
+    "release:minor": "npm version minor",
+    "release:patch": "npm version patch",
+    "start": "node src/oteDataApi.js",
+    "dev": "nodemon src/oteDataApi.js",
+    "build": "babel src --out-dir dist --source-maps inline",
+    "start:prod": "node dist/oteDataApi.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janspudich/OTE-data-scraper-and-API.git"
+  },
+  "keywords": [
+    "OTE",
+    "scraper",
+    "REST API"
+  ],
+  "author": "Jan Spudich",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/janspudich/OTE-data-scraper-and-API/issues"
+  },
+  "homepage": "https://github.com/janspudich/OTE-data-scraper-and-API#readme",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "http": "^0.0.1-security",
+    "mongoose": "^8.9.0",
+    "path": "^0.12.7",
+    "url": "^0.11.4",
+    "util": "^0.12.5",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-jsdoc": "^50.6.1",
+    "globals": "^15.14.0",
+    "nodemon": "^3.1.9"
+  }
 }
