@@ -17,11 +17,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+ARG port=3002
+
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/.env ./ 
 
-EXPOSE 3002
+EXPOSE $port
 
 CMD ["node", "dist/oteDataApi.js"] 
