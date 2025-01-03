@@ -10,6 +10,7 @@ import http from 'http';
 import util from 'util';
 import express from 'express';
 import crypto from 'crypto';
+import cron from 'node-cron';
 import {
   oteOneDay as oteOneDayDataModel,
   oteApiKey,
@@ -19,6 +20,12 @@ import {
   connectToDb,
   dateDiff,
 } from './util.js';
+import {
+  dateToScrapeUrl,
+  getMarketData,
+  storeOneDayData,
+  CONF_DB_DATE_TIME,
+} from './scraper.js';
 
 
 const respMessage = {
@@ -27,6 +34,15 @@ const respMessage = {
   serverId: 'OTE API Module (OAM), v0.0.1',
   notFound: 'Not found',
   serverError: 'Server unknown error',
+};
+
+// const CONF_START_DATE = '2024-12-18';
+// const scrapeDate = new Date(`${CONF_START_DATE}${CONF_DB_DATE_TIME}`);
+
+const cronExpr = {
+  dailyAt1300: '0 13 * * *',
+  dailyAt1400: '0 14 * * *',
+  everyMinute: '* * * * *',
 };
 
 /**
@@ -274,6 +290,21 @@ function setApiServer() {
   });
 }
 
+/**
+ * Scrapes and stores one day data for the date set in the scrapeDate variable
+ */
+async function scrapeAndStoreOneDayData() {
+  const scrapeDate = new Date(dateToDateStr(Date.now()) + CONF_DB_DATE_TIME);
+  const scrapeUrl = dateToScrapeUrl(scrapeDate);
+  console.log('Scrape URL: ', scrapeUrl);
+  const docExtract = await getMarketData(scrapeUrl);
+  await storeOneDayData(scrapeDate, docExtract);
+  scrapeDate.setDate(scrapeDate.getDate() + 1);
+}
+
+
 await connectToDb();
 
 setApiServer();
+
+cron.schedule(cronExpr.dailyAt1400, scrapeAndStoreOneDayData);
