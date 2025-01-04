@@ -1,11 +1,13 @@
+/* eslint-disable max-len */
 import {
   dateToScrapeUrl,
-  getMarketData,
+  getMarketDataRetryWrapper,
   storeOneDayData,
   CONF_DB_DATE_TIME,
 } from './scraper.js';
 import {
   connectToDb,
+  dateToDateStr,
 } from './util.js';
 import mongoose from 'mongoose';
 /*
@@ -13,8 +15,8 @@ import mongoose from 'mongoose';
 */
 // const CONF_START_DATE = '2024-10-26';
 // const CONF_START_DATE = '2024-03-30';
-const CONF_START_DATE = '2025-01-01';
-const CONF_PERIOD_IN_DAYS = 3;
+const CONF_START_DATE = '2025-01-03';
+const CONF_PERIOD_IN_DAYS = 1;
 // If we do not set the time, the default value 00:00:00 is assumed
 // This time is interpreted as local time according to the locale settings
 // and translated to UTC when storing the data in the DB.
@@ -29,9 +31,14 @@ await connectToDb();
 const scrapeDate = new Date(`${CONF_START_DATE}${CONF_DB_DATE_TIME}`);
 for (let i = 0; i < CONF_PERIOD_IN_DAYS; i++) {
   console.log('Scrape URL: ', dateToScrapeUrl(scrapeDate));
-  const docExtract = await getMarketData(dateToScrapeUrl(scrapeDate));
-  //    console.log('Scraped data: ', docExtract);
-  await storeOneDayData(scrapeDate, docExtract);
+  try {
+    const docExtract = await getMarketDataRetryWrapper(dateToScrapeUrl(scrapeDate));
+    //    console.log('Scraped data: ', docExtract);
+    await storeOneDayData(scrapeDate, docExtract);
+  }
+  catch (err) {
+    console.log(`Error while scraping the data and storing them in DB for the date ${dateToDateStr(scrapeDate)}: `, err);
+  }
   scrapeDate.setDate(scrapeDate.getDate() + 1);
 }
 await mongoose.connection.close();

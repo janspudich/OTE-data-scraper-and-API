@@ -14,6 +14,8 @@ import {
   oteUrlBase,
 } from './util.js';
 
+const retryPeriod = 15*60*1000; // 15 mnts
+const retryCount = 20; // 20 retries @ 15 mnts each -> 5 hrs
 
 /**
  * Loads the the HTML document determined by th input parameter, retrieves
@@ -23,7 +25,7 @@ import {
  * @returns {Array<Array.Number>} The data for a single day organized as
  * 2D array of Number
  */
-export async function getMarketData(url) {
+async function getMarketData(url) {
   const response = await axios.get(url);
   const $ = cheerio.load(response.data);
   // There are two tables of the class 'report_table', select the second one
@@ -54,6 +56,33 @@ export async function getMarketData(url) {
   return rows;
 }
 
+/**
+ * Repeatedly calls {@link getMarketData} until {@link getMarketData}
+ * returns market data.
+ * @param {string} url URL of the OTE page to retrieve the market data from
+ */
+export async function getMarketDataRetryWrapper(url) {
+  for (let i = 0; i<retryCount; i++) {
+    let rows;
+    try {
+      rows = await getMarketData(url);
+    }
+    catch (err) {
+      rows = [];
+      /** @todo Log the error in DB */
+    }
+    if ((rows.length < 23) || (rows.length > 25)) {
+      /* We assume that something went wrong during the data scraping process
+         if we do not get the expected number of rows */
+      await new Promise((resolve) => setTimeout(resolve, retryPeriod));
+      // console.log(`Retry ${i}`);
+    }
+    else {
+      return rows;
+    }
+  }
+  throw (new Error('Max retries reached'));
+}
 
 /**
  * Store the data passed in as parameters in DB.
@@ -63,16 +92,11 @@ export async function getMarketData(url) {
  * as two dimensional array
  */
 export async function storeOneDayData(date, oneDayData) {
-  try {
-    const newNode = oteOneDayDataModel({
-      date: date,
-      marketData: oneDayData,
-    });
-    await newNode.save();
-  }
-  catch (err) {
-    console.log('Error writing data to DB: ', err.errorResponse);
-  }
+  const newNode = oteOneDayDataModel({
+    date: date,
+    marketData: oneDayData,
+  });
+  await newNode.save();
 }
 
 

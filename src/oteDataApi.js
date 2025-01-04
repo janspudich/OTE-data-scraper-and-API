@@ -22,7 +22,7 @@ import {
 } from './util.js';
 import {
   dateToScrapeUrl,
-  getMarketData,
+  getMarketDataRetryWrapper,
   storeOneDayData,
   CONF_DB_DATE_TIME,
 } from './scraper.js';
@@ -40,6 +40,7 @@ const respMessage = {
 // const scrapeDate = new Date(`${CONF_START_DATE}${CONF_DB_DATE_TIME}`);
 
 const cronExpr = {
+  dailyAt1200: '0 12 * * *',
   dailyAt1300: '0 13 * * *',
   dailyAt1400: '0 14 * * *',
   everyMinute: '* * * * *',
@@ -291,15 +292,22 @@ function setApiServer() {
 }
 
 /**
- * Scrapes and stores one day data for the date set in the scrapeDate variable
+ * Scrapes and stores one day data for the current date.
+ * It gets called daily at 14:00.
  */
 async function scrapeAndStoreOneDayData() {
   const scrapeDate = new Date(dateToDateStr(Date.now()) + CONF_DB_DATE_TIME);
   const scrapeUrl = dateToScrapeUrl(scrapeDate);
   console.log('Scrape URL: ', scrapeUrl);
-  const docExtract = await getMarketData(scrapeUrl);
-  await storeOneDayData(scrapeDate, docExtract);
-  scrapeDate.setDate(scrapeDate.getDate() + 1);
+  try {
+    const docExtract = await getMarketDataRetryWrapper(
+      dateToScrapeUrl(scrapeDate),
+    );
+    await storeOneDayData(scrapeDate, docExtract);
+  }
+  catch (err) {
+    console.log(`Error while scraping the data and storing them in DB for the date ${dateToDateStr(scrapeDate)}: `, err);
+  }
 }
 
 
@@ -307,4 +315,4 @@ await connectToDb();
 
 setApiServer();
 
-cron.schedule(cronExpr.dailyAt1400, scrapeAndStoreOneDayData);
+cron.schedule(cronExpr.dailyAt1200, scrapeAndStoreOneDayData);
