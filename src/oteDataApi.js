@@ -6,11 +6,14 @@
 
 import 'dotenv/config';
 import cors from 'cors';
-import http from 'http';
-import util from 'util';
+import http from 'node:http';
+// The use of util.inspect is commented out but left in the code for edu
+// purposes. Thus the following import is left in the code.
+// import util from 'util';
 import express from 'express';
 import crypto from 'crypto';
 import cron from 'node-cron';
+import logger from './logger.js';
 import {
   oteOneDay as oteOneDayDataModel,
   oteApiKey,
@@ -18,23 +21,17 @@ import {
 import {
   dateToDateStr,
   connectToDb,
+  disconnectFromDb,
   dateDiff,
+  logMessage,
+  respMessage,
 } from './util.js';
 import {
-  dateToScrapeUrl,
   getMarketDataRetryWrapper,
   storeOneDayData,
-  CONF_DB_DATE_TIME,
+  dateTomorrow1300,
 } from './scraper.js';
 
-
-const respMessage = {
-  authHeaderMissing: 'Authorization header missing',
-  authHeaderDoesNotMatch: 'The API key used in the request is not authorized.',
-  serverId: 'OTE API Module (OAM), v0.0.1',
-  notFound: 'Not found',
-  serverError: 'Server unknown error',
-};
 
 // const CONF_START_DATE = '2024-12-18';
 // const scrapeDate = new Date(`${CONF_START_DATE}${CONF_DB_DATE_TIME}`);
@@ -45,6 +42,8 @@ const cronExpr = {
   dailyAt1400: '0 14 * * *',
   everyMinute: '* * * * *',
 };
+
+let httpServer;
 
 /**
  * Attempts to retrieve an authorization header from the request object.
@@ -61,17 +60,16 @@ const cronExpr = {
  * @param {} next The Express Next function
  */
 const emwAuth = (req, res, next) => {
-  const findKeyInDb = async (key) => {
+  const findKeyInDb = async (hashedKey, receivedApiKey) => {
     try {
-      const keyFound = await oteApiKey.findOne({hashedKey: key}).exec();
+      const keyFound = await oteApiKey.findOne({hashedKey}).exec();
 
       if (keyFound === null) {
-        console.log(`Hashed API key not found in DB - call not authorized.`);
+        logger.info(logMessage.apiKeyNotFound(req.ip, receivedApiKey));
         res.status(401).json({msg: respMessage.authHeaderDoesNotMatch});
       }
       else {
-        // eslint-disable-next-line max-len
-        console.log(`Hashed API key found in DB: ${keyFound.hashedKey} - call authorized`);
+        logger.info(logMessage.apiKeyFound(req.ip));
         next();
       }
     }
@@ -84,6 +82,7 @@ const emwAuth = (req, res, next) => {
   const match = authHeader.match(/Bearer (.+)/);
   if (!match) {
     // const errMsg = 'Authorization header missing';
+    logger.info(logMessage.apiKeyMissing(req.ip));
     res.status(401).json({msg: respMessage.authHeaderMissing});
   }
   else {
@@ -92,10 +91,8 @@ const emwAuth = (req, res, next) => {
         .createHmac('sha256', process.env.OTE_HASH_KEY)
         .update(receivedApiKey)
         .digest('hex');
-    // console.log(`Received API key: ${receivedApiKey}`);
-    // console.log(`Hash key: ${process.env.OTE_HASH_KEY}`);
-    // console.log(`Hex digest of the received API key: ${hexDigest}`);
-    findKeyInDb(hexDigest);
+    logger.debug(logMessage.apiKeyReceived(receivedApiKey, hexDigest));
+    findKeyInDb(hexDigest, receivedApiKey);
   }
 };
 
@@ -135,9 +132,8 @@ const emwCoverage = (_req, res) => {
       return recordFound.date;
     }
     catch (err) {
-      console.log(err);
+      logger.error(err.message);
     }
-    return null;
   };
 
   // async function coverage() {
@@ -171,7 +167,10 @@ const emwMarketData = (req, res) => {
     // async function readMarketData() {
     let queryObj;
     const startDate = new Date(req.query.startDate);
-    console.log('startDate query param: ', req.query.startDate);
+    logger.debug(logMessage.apiMethod.marketData.reqParams(
+      req.query.startDate,
+      req.query.endDate,
+    ));
     if (req.query.endDate) {
       // date range
       const endDate = new Date(`${req.query.endDate}T21:59:59`);
@@ -188,7 +187,7 @@ const emwMarketData = (req, res) => {
         $lte: endDate,
       };
     }
-    console.log('QueryObj: ', queryObj);
+    logger.debug({msg: 'queryObj value', ...queryObj});
     const marketData = await oteOneDayDataModel
         .find(
           {
@@ -199,6 +198,8 @@ const emwMarketData = (req, res) => {
         .exec();
 
     const retVal = [];
+
+    logger.debug({msg: 'marketData value', ...marketData});
 
     if (marketData.length > 1) {
       // date range
@@ -214,7 +215,7 @@ const emwMarketData = (req, res) => {
       });
       res.status(200).json(retVal);
     }
-    else {
+    else if (marketData.length === 1) {
       // single date
       marketData[0].marketData.forEach((hour) => {
         retVal.push(hour);
@@ -223,6 +224,14 @@ const emwMarketData = (req, res) => {
         date: dateToDateStr(startDate),
         marketData: retVal,
       });
+    }
+    else {
+      // no date
+      logger.info(logMessage.apiMethod.marketData.notFound(
+        req.query.startDate,
+        req.query.endDate,
+      ));
+      res.status(404).json({msg: respMessage.notFound});
     }
   };
 
@@ -279,40 +288,79 @@ function setApiServer() {
 
   app.use((err, _req, res, _next) => {
     // error handling
+    /*
     console.log(
       util.inspect(err, false, null, true), // The fourth param enables colors
     );
+    */
+    logger.error(err.message);
     res.status(500).json({msg: respMessage.serverError, err});
   });
 
-  http.createServer(app).listen(port, () => {
-    console.log('The OTE server has started.');
-    console.log(`Listening on the port ${port}.`);
-  });
+  httpServer = http
+      .createServer(app)
+      .listen(port, () => {
+        logger.info(logMessage.serverStart(port));
+      })
+      .on('error', (err) => { // https://stackoverflow.com/a/22263571
+        logger.error(`${err.message}`);
+        process.emit('SIGINT');
+      });
 }
 
 /**
- * Scrapes and stores one day data for the current date.
- * It gets called daily at 14:00.
+ * Scrapes and stores one day data for the next date.
+ * It gets called daily at the time determined by the cron scheduler
+ * set in this module.
  */
 async function scrapeAndStoreOneDayData() {
-  const scrapeDate = new Date(dateToDateStr(Date.now()) + CONF_DB_DATE_TIME);
-  const scrapeUrl = dateToScrapeUrl(scrapeDate);
-  console.log('Scrape URL: ', scrapeUrl);
+  const scrapeDate = dateTomorrow1300();
   try {
-    const docExtract = await getMarketDataRetryWrapper(
-      dateToScrapeUrl(scrapeDate),
-    );
+    const docExtract = await getMarketDataRetryWrapper(scrapeDate);
     await storeOneDayData(scrapeDate, docExtract);
   }
   catch (err) {
-    console.log(`Error while scraping the data and storing them in DB for the date ${dateToDateStr(scrapeDate)}: `, err);
+    logger.error(err.message);
+    // logError(scrapeDate, err.name, err.message);
   }
 }
 
+/**
+ * Gracefully shuts down the server by closing the HTTP server and by closing
+ * the DB connection.
+ * @param {string} signal A name of the signal which triggered this function.
+ */
+async function gracefulShutdown(signal) {
+  logger.info(logMessage.serverSignal(signal));
 
+  // Close the http server
+  try {
+    await httpServer.close();
+    logger.info(logMessage.serverHttpClosed);
+  }
+  catch (err) {
+    logger.error(err.message);
+    process.exit(1);
+  }
+
+  // Close the DB connection
+  try {
+    await disconnectFromDb();
+  }
+  catch (err) {
+    logger.error(err.message);
+    process.exit(2);
+  }
+  logger.info(logMessage.goodBye);
+  process.exit(0);
+}
+
+/* Graceful shutdown */
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+/* Server start */
 await connectToDb();
-
 setApiServer();
-
 cron.schedule(cronExpr.dailyAt1200, scrapeAndStoreOneDayData);
+
